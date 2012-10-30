@@ -23,6 +23,8 @@ var filemanager = {
     init : function(){
         // Initialize node listener
         this.node_listener();
+        // Context Menu Event Listener
+        this.context_menu_event_listener();
         // Load uploader
         $.loadScript("components/filemanager/upload_scripts/jquery.ui.widget.js",true);
         $.loadScript("components/filemanager/upload_scripts/jquery.iframe-transport.js",true);
@@ -72,17 +74,52 @@ var filemanager = {
         $('#context-menu').css({'top':(e.pageY-10)+'px','left':(e.pageX-10)+'px'})
             .fadeIn(200).attr('data-path',path).attr('data-type',type);
         // Show faded 'paste' if nothing in clipboard
-        if(this.clipboard===''){ $('#context-menu a[content="Paste"]').addClass('disabled');
+        if(this.clipboard==''){ $('#context-menu a[data-action="paste"]').addClass('disabled');
         }else{ $('#context-menu a[data-action="paste"]').removeClass('disabled'); }
         // Hide menu
         $('#file-manager, #editor-region').on('mouseover',function(){ filemanager.context_menu_hide(); });
-        // Hide on click
-        $('#context-menu a').click(function(){ filemanager.context_menu_hide(); });
     },
     
     context_menu_hide : function(){
         $('#context-menu').fadeOut(200);
         $('#file-manager a').removeClass('context-menu-active');
+    },
+    
+    context_menu_event_listener : function(){
+        $('#context-menu a').live('click',function(){
+            filemanager.context_menu_hide();
+            var path = $('#context-menu').attr('data-path');
+            var action = $(this).attr('data-action');
+            switch(action){
+                case 'new_file':
+                    filemanager.create_node(path,'file');
+                    break;
+                case 'new_directory':
+                    filemanager.create_node(path,'directory');
+                    break;
+                case 'copy':
+                    filemanager.copy_node(path);
+                    break;
+                case 'paste':
+                    filemanager.paste_node(path);
+                    break;
+                case 'rename':
+                    filemanager.rename_node(path);
+                    break;
+                case 'delete':
+                    filemanager.delete_node(path);
+                    break;
+                case 'upload':
+                    filemanager.upload_to_node(path);
+                    break;
+                case 'backup':
+                    filemanager.download(path);
+                    break;
+                case 'addtask':
+                    task.create_by_file(path);
+                    break;
+            }
+        });
     },
     
     //////////////////////////////////////////////////////////////////
@@ -131,12 +168,11 @@ var filemanager = {
     // Loop out all files and folders in directory path
     //////////////////////////////////////////////////////////////////
 
-    index : function(path,rescan){
-        if(rescan === undefined){ rescan = false; }
+    index : function(path){
         node = $('#file-manager a[data-path="'+path+'"]');
         node.addClass('loading');
         $.get(this.controller+'?action=index&path='+path,function(data){
-            if(node.hasClass('open') && !rescan){
+            if(node.hasClass('open')){
                 node.parent('li').children('ul').slideUp(300,function(){ 
                     $(this).remove(); 
                     node.removeClass('open');
@@ -147,9 +183,7 @@ var filemanager = {
                 if(objects_response!='error'){
                     files = objects_response.index;
                     if(files.length>0){
-                        var display = 'display:none;';
-                        if(rescan){ display = ''; }
-                        var appendage = '<ul style="'+display+'">';
+                        var appendage = '<ul style="display: none;">';
                         $.each(files,function(index){
                             var ext = '';
                             var name = files[index].name.replace(path,'');
@@ -158,37 +192,14 @@ var filemanager = {
                             appendage += '<li><a class="'+files[index].type+ext+'" data-type="'+files[index].type+'" data-path="'+files[index].name+'">'+name+'</a></li>';
                         });
                         appendage += '</ul>';
-                        if(rescan){ node.parent('li').children('ul').remove(); }
                         $(appendage).insertAfter(node);
-                        if(!rescan){ node.siblings('ul').slideDown(300); }
+                        node.siblings('ul').slideDown(300);   
                     }
                 }
             }
             node.removeClass('loading');
-            if(rescan && filemanager.rescan_children.length>filemanager.rescan_counter){
-                filemanager.rescan(filemanager.rescan_children[filemanager.rescan_counter++]);
-            }else{
-                filemanager.rescan_children = [];
-                filemanager.rescan_counter = 0;
-            }
         });
         
-    },
-    
-    rescan_children : [],
-    
-    rescan_counter : 0,
-    
-    rescan : function(path){        
-        if(filemanager.rescan_counter===0){
-            // Create array of open directories
-            node = $('#file-manager a[data-path="'+path+'"]');
-            node.parent().find('a.open').each(function(){
-                filemanager.rescan_children.push($(this).attr('data-path'));
-            });
-        }
-        
-        filemanager.index(path,true);
     },
     
     //////////////////////////////////////////////////////////////////
@@ -226,28 +237,13 @@ var filemanager = {
     // Save file
     //////////////////////////////////////////////////////////////////
     
-    save_file : function(path,content, callbacks){
-        callbacks = callbacks || {};
-        var _this = this;
-        var notify_save_err = function(){
-            message.error('File could not be saved');
-            if (typeof callbacks.error === 'function'){
-                var context = callbacks.context || _this;
-                callbacks.error.apply(context, [data]);
-            }
-        }
+    save_file : function(path,content){
         $.post(this.controller+'?action=modify&path='+path,{content:content},function(data){
             save_response = jsend.parse(data);
             if(save_response!='error'){
                 message.success('File Saved');
             }
-            if (typeof callbacks.success === 'function'){
-                var context = callbacks.context || _this;
-                callbacks.success.apply(context, [data]);
-            } else {
-                notify_save_err();
-            }
-        }).error(notify_save_err);
+        });
     },
     
     //////////////////////////////////////////////////////////////////
@@ -383,33 +379,6 @@ var filemanager = {
                 }
                 modal.unload();
             });                      
-        });
-    },
-    
-    //////////////////////////////////////////////////////////////////
-    // Search
-    //////////////////////////////////////////////////////////////////
-    
-    search : function(path){
-        modal.load(500,this.dialog+'?action=search&path='+path);
-        modal.hide_overlay();
-        $('#modal-content form').live('submit',function(e){
-            $('#filemanager-search-processing').show();
-            e.preventDefault();
-            search_string = $('#modal-content form input[name="search_string"]').val();
-            $.post(filemanager.controller+'?action=search&path='+path,{search_string:search_string},function(data){
-                search_response = jsend.parse(data);
-                if(search_response!='error'){
-                    var results = '';
-                    $.each(search_response.index, function(key, val) {
-                        results += '<div><a onclick="filemanager.open_file(\'' + val['file'] + '\');setTimeout( function() { active.goto_line('+val['line']+'); }, 500);modal.unload();">Line ' + val['line'] + ': ' + val['file'] + '</a></div>';
-                    });
-                    $('#filemanager-search-results').slideDown().html(results);
-                }else{
-                    $('#filemanager-search-results').slideUp();
-                }
-                $('#filemanager-search-processing').hide();
-            });
         });
     },
     

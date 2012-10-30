@@ -38,6 +38,15 @@
         "title": "break",
         "icon": null,
         "onclick": null
+    },{
+        "title": "Tasks",
+        "icon": "t",
+        "onclick": "task.list();"
+    },
+    {
+        "title": "break",
+        "icon": null,
+        "onclick": null
     },
     {
         "title": "Users",

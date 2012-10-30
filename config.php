@@ -10,7 +10,7 @@
 // PATH
 //////////////////////////////////////////////////////////////////
 
-$rel = "";
+$rel = "/codiad";
 define("BASE_PATH",$_SERVER["DOCUMENT_ROOT"] . $rel);
 define("COMPONENTS",BASE_PATH . "/components");
 define("DATA",BASE_PATH . "/data");
@@ -21,7 +21,7 @@ define("WSURL",$_SERVER["HTTP_HOST"] . $rel . "/workspace");
 // TIMEZONE
 //////////////////////////////////////////////////////////////////
 
-date_default_timezone_set("America/Chicago");
+date_default_timezone_set("America/Bogota");
 
 //////////////////////////////////////////////////////////////////
 // SESSIONS

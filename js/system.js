@@ -39,20 +39,10 @@ jQuery.loadScript = function (url, arg1, arg2) {
 $(function(){ 
     // Sliding sidebars
     sidebars.init();
-    var handleWidth = 10;
     $(window).on('load resize',function(){
-        if($("#sb-left").css('left')!==0 && !sidebars.user_lock){
-            margin_l = handleWidth;
-            reduction = 2*handleWidth;
-        }else{
-            margin_l = $("#sb-left").width();
-            reduction = margin_l + handleWidth;
-        }
-        $('#editor-region').css({
-            'margin-left':margin_l+'px',
-            'width':($('body').outerWidth()-reduction)+'px',
-            'height':($('body').outerHeight()-25)+'px'
-        });
+        if($("#sb-left").css('left')!==0 && !sidebars.user_lock){ margin_l = 10; reduction=20; }
+        else{ margin_l = 300; reduction = 310; }
+        $('#editor-region').css({'margin-left':margin_l+'px','width':($('body').outerWidth()-reduction)+'px','height':($('body').outerHeight()-25)+'px'});
     });
 });
 
@@ -83,10 +73,7 @@ var modal = {
     load : function(w,u){ // (Width, URL)
         $('#modal').css({'top':'15%','left':'50%','width':w+'px','margin-left':'-'+Math.ceil(w/2)+'px'}).draggable({ handle: '#drag-handle' });
         $('#modal-content').html('<div id="modal-loading"></div>');
-        $('#modal-content').load(u,function(){
-            // Fix for Firefox autofocus goofiness
-            $('input[autofocus="autofocus"]').focus();
-        });
+        $('#modal-content').load(u);
         $('#modal, #modal-overlay').fadeIn(200);
         sidebars.modal_lock = true;
     },
@@ -155,24 +142,17 @@ var sidebars = {
                 $('#lock-left-sidebar').html('U');
             }        
         });
-
+        
         // Left Column Slider
          $("#sb-left").hover(function() {
             var timeout_r = $(this).data("timeout_r");
             if(timeout_r){ clearTimeout(timeout_r); }
-            var sbarWidth = $("#sb-left").width();
-            $('#editor-region').animate({
-                'margin-left': sbarWidth+'px',
-                'width':($('body').outerWidth()- sbarWidth - 10)+'px'
-            },300,'easeOutQuart');
+            $('#editor-region').animate({'margin-left':'300px','width':($('body').outerWidth()-310)+'px'},300,'easeOutQuart');
             $(this).animate({'left':'0px'},300,'easeOutQuart');
          },function() {
-            var sbarWidth = $("#sb-left").width();
             $(this).data("timeout_r", setTimeout($.proxy(function() {
                 if(!sidebars.user_lock && !sidebars.modal_lock){ // Check locks
-                    $(this).animate({
-                        'left':(-sbarWidth + 10)+"px"
-                    },300,'easeOutQuart');
+                    $(this).animate({'left':'-290px'},300,'easeOutQuart');
                     $('#editor-region').animate({'margin-left':'10px','width':($('body').outerWidth()-20)+'px'},300,'easeOutQuart');
                 }
             },this), 500));
@@ -189,18 +169,7 @@ var sidebars = {
                 $(this).animate({'right':'-190px'},300,'easeOutQuart');
                 $('#editor-region').animate({'margin-right':'10px'},300,'easeOutQuart');
             },this), 500));
-         });
-         
-        $(".sidebar-handle").draggable({
-            axis: 'x', 
-            drag: function(event, ui) {
-                newWidth = ui.position.left;
-                $("#sb-left").width(newWidth + 10);
-            },
-            stop: function() {
-                $(window).resize();
-            }
-        });
+         });    
     }
     
 };

@@ -11,7 +11,6 @@ var active = {
     controller : 'components/active/controller.php',
 
     init : function(){
-        
         // Focus
         $('#active-files a').live('click',function(){
             active.focus($(this).attr('data-path'));
@@ -42,39 +41,6 @@ var active = {
         });
         // Run resize on window resize
         $(window).on('resize',function(){ active.resize(); });
-
-        // Prompt if a user tries to close window without saving all filess
-        window.onbeforeunload = function (e) {
-            if ($('#active-files a.changed').length > 0) {
-                var e = e || window.event;
-                var err_msg = "You have unsaved files."
-
-                // For IE and Firefox prior to version 4
-                if (e) {
-                    e.returnValue = err_msg;
-                }
-
-                // For rest
-                return err_msg;
-            }
-        };
-    },
-    
-    //////////////////////////////////////////////////////////////////
-    // Drafts
-    //////////////////////////////////////////////////////////////////
-    
-    check_draft : function(path){
-        var draft = localStorage.getItem(path);
-        if(draft!==null){
-            return draft;
-        }else{
-            return false;
-        }
-    },
-    
-    remove_draft : function(path){
-        localStorage.removeItem(path);
     },
     
     //////////////////////////////////////////////////////////////////
@@ -119,8 +85,6 @@ var active = {
         $('#active-files').append('<li><a data-path="'+path+'"><span></span><div>'+path+'</div></a></li>');
         $.get(active.controller+'?action=add&path='+path);
         this.focus(path);
-        // Mark draft as changed
-        if(active.check_draft(path)){ active.mark_changed(editor.get_id(path)); }
     },
     
     //////////////////////////////////////////////////////////////////
@@ -164,15 +128,11 @@ var active = {
         var id = this.get_id();
         if(path && id){
             var content = editor.get_content(id);
-            filemanager.save_file(path,content, {
-                success: function(){
-                    $('#active-files a[data-path="'+path+'"]').removeClass('changed');
-                    active.remove_draft(path);
-                }
-            });
+            filemanager.save_file(path,content);
         }else{
             message.error('No Open Files to Save');
         }
+        $('#active-files a[data-path="'+path+'"]').removeClass('changed');
     },
     
     //////////////////////////////////////////////////////////////////
@@ -201,8 +161,6 @@ var active = {
         $('#editor'+editor.get_id(path)).remove();
         $('#active-files a[data-path="'+path+'"]').parent('li').remove();
         $.get(active.controller+'?action=remove&path='+path);
-        // Remove any draft content
-        active.remove_draft(path);
     },
     
     //////////////////////////////////////////////////////////////////
@@ -267,14 +225,6 @@ var active = {
     
     insert_text : function(val){
         editor.insert_text(active.get_id(),val);
-    },
-    
-    //////////////////////////////////////////////////////////////////
-    // Goto Line
-    //////////////////////////////////////////////////////////////////
-    
-    goto_line : function(line){
-        editor.goto_line(active.get_id(),line);
     },
     
     //////////////////////////////////////////////////////////////////

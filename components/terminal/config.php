@@ -8,7 +8,7 @@
     
     // Enable or disable terminal
     
-    $terminal_enabled = false;
+    $terminal_enabled = true;
     
     // Terminal password (Leave blank for none)
     

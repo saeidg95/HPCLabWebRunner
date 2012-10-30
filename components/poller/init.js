@@ -12,13 +12,8 @@ var poller = {
     interval : 10000,
     
     init : function(){
-        
-        setInterval(function(){
-        
-            poller.check_auth();
-            poller.save_drafts();
-        
-        },poller.interval);
+    
+        poller.check_auth();
         
     },
     
@@ -27,43 +22,29 @@ var poller = {
     //////////////////////////////////////////////////////////////////
     
     check_auth : function(){
-
-        // Run controller to check session (also acts as keep-alive)
-        $.get(poller.controller+'?action=check_auth',function(data){
-            
-            if(data){
-                parsed = jsend.parse(data);
-                if(parsed=='error'){
-                    // Session not set, reload
-                    user.logout();
+        
+        setInterval(function(){
+        
+            // Run controller to check session (also acts as keep-alive)
+            $.get(poller.controller+'?action=check_auth',function(data){
+                
+                if(data){
+                    parsed = jsend.parse(data);
+                    if(parsed!='error'){
+                        // Session not set, reload
+                        window.location.reload();
+                    }
                 }
-            }
+                
+            });
             
-        });
+            // Check user
+            $.get(user.controller+'?action=verify',function(data){
+                if(data=='false'){ user.logout(); }
+            });
         
-        // Check user
-        $.get(user.controller+'?action=verify',function(data){
-            if(data=='false'){ user.logout(); }
-        });
+        },poller.interval);
         
-    },
-    
-    //////////////////////////////////////////////////////////////////
-    // Poll For Auto-Save of drafts (persist)
-    //////////////////////////////////////////////////////////////////
-    
-    save_drafts : function(){
-        $('#active-files a.changed').each(function(){
-            
-            // Get changed content and path
-            var path = $(this).attr('data-path');
-            var id = editor.get_id(path);
-            var content = editor.get_content(id);
-        
-            // Set localstorage
-            localStorage.setItem(path,content);
-        
-        });
     }
     
 };

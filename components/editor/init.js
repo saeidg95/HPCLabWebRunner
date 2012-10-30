@@ -18,10 +18,6 @@ var editor = {
     open : function(path,content){
     
         if(this.get_id(path)==null){
-            
-            // Check draft
-            var draft = active.check_draft(path);
-            if(draft){ content = draft; }
     
             // Hide all other editors
             $('.editor').hide();
@@ -42,7 +38,6 @@ var editor = {
             this.set_print_margin(false,editor_instance[editor_count]);
             this.set_highlight_line(true,editor_instance[editor_count]);
             this.set_indent_guides(true,editor_instance[editor_count]);
-            this.set_wrap_mode(false,editor_instance[editor_count]);
             this.change_listener(editor_instance[editor_count]);
             this.bind_keys(editor_instance[editor_count]);
             
@@ -172,14 +167,6 @@ var editor = {
     },
     
     //////////////////////////////////////////////////////////////////
-    // Set Line Wrapping
-    //////////////////////////////////////////////////////////////////
-    
-    set_wrap_mode : function(w,i){
-        i.getSession().setUseWrapMode(w);
-    },
-    
-    //////////////////////////////////////////////////////////////////
     // Get content from editor by ID
     //////////////////////////////////////////////////////////////////
     
@@ -221,14 +208,6 @@ var editor = {
     
     insert_text : function(id,val){
         editor_instance[id].insert(val);
-    },
-    
-    //////////////////////////////////////////////////////////////////
-    // Goto Line
-    //////////////////////////////////////////////////////////////////
-    
-    goto_line : function(id,line){
-        editor_instance[id].gotoLine(line, 0, true);  
     },
     
     //////////////////////////////////////////////////////////////////
