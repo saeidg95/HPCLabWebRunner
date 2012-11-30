@@ -27,37 +27,55 @@
             <div id="project-list">
             <table width="100%">
                 <tr>
-                    <th>Login</th>
-                    <th width="5">Password</th>
-                    <th width="5">Delete</th>
+                    <th>User</th>
+                    <th width="3">Assig?</th>
+                    <th width="3"></th>
                 </tr>
             <?php
         
             // Get projects JSON data
             $users = getJSON('users.php');
-            foreach($users as $user=>$data){        
+            $project_part = explode("/", $_SESSION["project"]);
             ?>
-            <tr>
-                <td><?php echo($data['username']); ?></td>
-                <td><a onclick="user.password('<?php echo($data['username']); ?>');" class="icon">A</a></td>
-                <?php
-                    if($_SESSION['user'] == $data['username']){
-                    ?>
-                    <td><a onclick="message.error('You Cannot Delete Your Own Account');" class="icon">^</a></td>
-                    <?php
-                    }else{
-                    ?>
-                    <td><a onclick="user.delete('<?php echo($data['username']); ?>');" class="icon">[</a></td>
-                    <?php
-                    }
-                    ?>
-            </tr>
-            <?php
-            }
-            ?>
+
+            <?php  foreach($users as $user=>$data): ?>
+                <?php if( isset( $_SESSION["project"] ) ): ?>
+                    <tr>
+                    <td><?php echo($data['username']); ?></td>
+
+                    <?php if( $project_part[0] == $_SESSION["user"] ):?>
+
+                        <?php if( $_SESSION['user'] == $data['username'] ):?>
+                            <td><span class="icon">W</span></td>
+                            <td></td>
+                        <?php else: ?>
+                            <?php if( !in_array($_SESSION["project"], $data["projects"] ) ): ?>
+                                <td></td>
+                                <td><a onclick="user.assig('<?php echo($data['username']); ?>',1);" class="icon">Z</a></td>
+                            <?php else: ?>
+                                <td><span class="icon">W</span></td>
+                                <td><a onclick="user.assig('<?php echo($data['username']); ?>',0);" class="icon">Y</a></td>
+                            <?php endif;?>
+                        <?php endif;?>
+
+                    <?php else:?>
+                        <?php if( !in_array($_SESSION["project"], $data["projects"] ) ): ?>
+                            <td></td>
+                            <td></td>
+                        <?php else: ?>
+                            <td><span class="icon">W</span></td>
+                            <td></td>
+                        <?php endif;?>
+                    <?php endif;?>
+                    </tr>
+                <?php endif;?>
+            <?php endforeach;?>
+
+               
             </table>
             </div>
-            <button class="btn-left" onclick="user.create_new();">New Account</button><button class="btn-right" onclick="modal.unload();return false;">Close</button>
+            <button class="btn-right" onclick="modal.unload();return false;">Close</button>
+
             <?php
             
             break;
@@ -66,7 +84,7 @@
         // Create New User
         //////////////////////////////////////////////////////////////////////
         
-        case create:
+        case 'create':
         
             ?>
             <form>
@@ -85,7 +103,7 @@
         // Delete User
         //////////////////////////////////////////////////////////////////////
         
-        case delete:
+        case 'delete':
         
         ?>
             <form>
@@ -100,7 +118,7 @@
         // Change Password
         //////////////////////////////////////////////////////////////////////
         
-        case password:
+        case 'password':
         
         ?>
             <form>

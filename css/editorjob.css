@@ -1,0 +1,9 @@
+.editor-section .set-section{ 
+	display: none;
+	width: 50%;
+	margin: auto;
+	background: #CCC;
+	padding: 2%;
+  }
+  
+.editor-section .label{ display: inline-block; padding: 5px 8px; background: #fff; color: #000; cursor: pointer; }

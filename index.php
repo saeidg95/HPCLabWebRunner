@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/fonts.css">
     <link rel="stylesheet" href="css/screen.css">
+    <link rel="stylesheet" href="css/editorjob.css">
 </head>
 
 <body>
@@ -17,6 +18,7 @@
     <script src="js/jquery.css3.min.js"></script>
     <script src="js/jquery.easing.js"></script>
     <script src="js/system.js"></script>
+    <script src="js/editorjob.js"></script>
     
     <div id="message"></div>
 

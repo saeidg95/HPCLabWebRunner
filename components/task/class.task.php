@@ -6,6 +6,8 @@
 *  [root]/license.txt for more. This information must remain intact.
 */
 
+require_once '../../Ssh2_crontab_manager/Ssh2_crontab_manager.php';
+
 class Task {
 
     //////////////////////////////////////////////////////////////////
@@ -42,7 +44,18 @@ class Task {
     //////////////////////////////////////////////////////////////////
     
     public function Create(){
+	 
+        GLOBAL $HOSTAUTH;
         $this->id = time();
+        $path_bin = WORKSPACE."/".$_SESSION['project']."/.bin";
+
+        if( ! is_dir( $path_bin ) ){
+            if( ! mkdir($path_bin)  ){
+                   echo formatJSEND("error","Error to try created run bin path.");    
+                   return;
+            }
+        }
+
         if( !$this->checkExist() ){
             $this->tasks[] = array(
                 "id"=>$this->id,
@@ -51,8 +64,28 @@ class Task {
                 "job"=>$this->job,
                 "type"=>$this->type,
                 "path"=>$this->path,
-                "project"=>""
+                "project"=>$_SESSION['project']
             );
+
+            $cron_job_file = $path_bin."/".$this->id.".sh";
+
+            $handle = @fopen($cron_job_file, 'w') or die('Cannot open file:  '.$cron_job_file);
+            $data = "#!/bin/bash\n".$this->type."\t".WORKSPACE.$this->path;
+            @fwrite($handle, $data);
+            fclose($handle);
+            
+            /****TODO ADD JOB LINE ON CRON TAB FOR USER***/
+            
+                $users = getJSON('users.php');
+                $current;
+                foreach($users as $user){ if($user["username"] == $_SESSION["user"]){ $current = $user; break;} }
+
+		  //echo $this->job.'    '.$cron_job_file .'  >/dev/null 2>&1';          
+
+                $ssh_con = new Ssh2_crontab_manager($HOSTAUTH,"22",$current["username"],$_SESSION['user_passwd']);
+                $ssh_con->append_cronjob(  $this->job.'    '.$cron_job_file .'  >/dev/null 2>&1' );  
+
+
             saveJSON('tasks.php',$this->tasks);
             echo formatJSEND("success",array("name"=>$this->name));
         }else{
@@ -67,15 +100,43 @@ class Task {
     //////////////////////////////////////////////////////////////////
     
     public function Delete(){
+
+      GLOBAL $HOSTAUTH;
         if( $this->checkExist() ){
             $news=array();
+        
             foreach ($this->tasks as $key => $data) {
                 if( $data["id"] != $this->id ){
                     $news[] = $data;
+                }else{
+                    $task = $data;
                 }
             }
+
+            $users = getJSON('users.php');
+            $current;
+            foreach($users as $user){ if($user["username"] == $_SESSION["user"]){ $current = $user; break;} }
+                
+            $path_bin = WORKSPACE."/".$_SESSION['project']."/.bin/".$this->id.".sh";
+            $cron_job_file =/*$task["job"]."    ".*/$path_bin;
+
+            $new_line = str_replace("*","\*", $cron_job_file);
+            $new_line = str_replace("/","\/", $new_line);
+            $new_line = "/".str_replace(".","\.", $new_line)."/";
+
+            $ssh_con = new Ssh2_crontab_manager($HOSTAUTH,"22",$current["username"],$_SESSION['user_passwd']); 
+            $ssh_con->remove_cronjob($new_line);  
+
+
+            if( !@unlink($path_bin) ){
+                $r = "Archivo borrado correctamente.";
+
+            }else{
+                $r = "Archivo NO borrado.";
+            }
+
             saveJSON('tasks.php',$news);
-            echo formatJSEND("success",null);
+            echo formatJSEND("success",$r);
         }else{
             echo formatJSEND("error","Dont exist Task. Error ID");
         }

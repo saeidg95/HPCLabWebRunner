@@ -1,1 +1,1 @@
-<?php/*|[{"username":"erick","password":"b646b6890b223b01a5009fea07dc0f5af170edf4","project":"zfsdfsf"},{"username":"admin","password":"90b9aa7e25f80cf4f64e990b78a9fc5ebd6cecad","project":"zfsdfsf"}]|*/?>
+<?php/*|[{"username":"erick","password":"","project":"erick\/erick","projects":["erick\/erick","erick\/Ejemplo","root\/root","erick\/EEEEe","erick\/Otro_proyecto"]},{"username":"root","password":"","project":"root\/root","projects":["root\/root","root\/Ejemplo","erick\/Ejemplo"]}]|*/?>

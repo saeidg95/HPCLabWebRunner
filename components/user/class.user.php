@@ -6,6 +6,8 @@
 *  [root]/license.txt for more. This information must remain intact.
 */
 
+require_once '../../Ssh2_crontab_manager/Ssh2_crontab_manager.php';
+
 class User {
 
     //////////////////////////////////////////////////////////////////
@@ -38,26 +40,101 @@ class User {
     //////////////////////////////////////////////////////////////////
     
     public function Authenticate(){
-        
-        $pass = false;
-        $this->EncryptPassword();
-        $users = getJSON('users.php');
-        foreach($users as $user){
-            if($user['username']==$this->username && $user['password']==$this->password){
-                $pass = true;
-                $_SESSION['user'] = $this->username;
-                if($user['project']!=''){ $_SESSION['project'] = $user['project']; }
+            GLOBAL $HOSTAUTH;
+
+            $pass = false;
+            try{
+                $ssh_con = new Ssh2_crontab_manager($HOSTAUTH,"22",$this->username,$this->password);
+            }catch(Exception $e){
+                echo formatJSEND("error","Incorrect Username or Password");
             }
-        }
-        
-        if($pass){ echo formatJSEND("success",array("username"=>$this->username)); }
-        else{ echo formatJSEND("error","Incorrect Username or Password"); }
+           
+
+            if( $ssh_con->init ){
+                $pass = true;
+                $user = array( 'projects' => array() );
+
+                //$users = getJSON('users.php');
+                $exist = false;
+
+                if( count($this->users) ){
+                    foreach($this->users as $u){
+                        if($u['username']==$this->username){
+                            if( isset( $u["projects"] ) && count( $u["projects"] ) ){
+                                foreach( $u["projects"] as $project  ){
+                                    $user['projects'][] = $project;
+                                }
+                            }
+                            $exist = true;
+                            break;
+                        }
+                    }
+                }
+
+                $_SESSION['user'] = $this->username;
+                $_SESSION['user_passwd'] = $this->password;
+                
+
+                $path_project = $this->username."/".$this->username;
+
+                if( !$exist ){
+
+                    $user['projects'][] = $path_project;
+
+                    $this->users[] = array(
+                        "username"=>$this->username,
+                        "password"=>"",
+                        "project"=> $path_project,
+                        "projects" => $user['projects']
+                    );
+                   
+                    $p = new Project();
+                    $p->path = $path_project;
+                    $p->name = $this->username;
+                    $d = $p->CreateExt($this->username);
+                    
+                    if( !$d["success"] ){
+                        echo formatJSEND("error",$d["msg"]);
+                        return;
+                    }
+
+                    saveJSON('users.php',$this->users);
+                }
+
+                $_SESSION['projects'] = $user["projects"];
+
+                if(  count(  $user['projects'] ) == 1){ 
+                    $_SESSION['project'] = $path_project; 
+                }else{
+                    $_SESSION['project'] =  $user["projects"][0];
+                    //todo make selector project load!!
+                }
+
+                echo formatJSEND("success",array("username"=>$this->username));
+            }else{
+                echo formatJSEND("error","Incorrect Username or Password");
+            }
+
     }
     
+
+    public function Create(){
+        $this->EncryptPassword();
+        $pass = $this->checkDuplicate();
+        if($pass){
+            $this->users[] = array("username"=>$this->username,"password"=>$this->password,"project"=>"");
+            saveJSON('users.php',$this->users);
+            echo formatJSEND("success",array("username"=>$this->username));
+        }else{
+            echo formatJSEND("error","The Username is Already Taken");
+        }
+    }
+
+
     //////////////////////////////////////////////////////////////////
     // Create Account
     //////////////////////////////////////////////////////////////////
-    
+    /*
     public function Create(){
         $this->EncryptPassword();
         $pass = $this->checkDuplicate();
@@ -116,24 +193,62 @@ class User {
         // Response
         echo formatJSEND("success",null);
     }
-    
+    */
+
     //////////////////////////////////////////////////////////////////
     // Set Current Project
     //////////////////////////////////////////////////////////////////
     
-    public function Project(){
+    public function Assig($a){
+
         $revised_array = array();
-        foreach($this->users as $user=>$data){
-            if($this->username==$data['username']){
-                $revised_array[] = array("username"=>$data['username'],"password"=>$data['password'],"project"=>$this->project);
-            }else{
-                $revised_array[] = array("username"=>$data['username'],"password"=>$data['password'],"project"=>$data['project']);
+        $revised_array_t = array();
+        if( isset($_SESSION["project"]) ){
+
+            foreach($this->users as $user=>$data){
+                $revised_array_t = $data;
+
+                if($this->username==$data['username']){
+
+                    if($a){
+                        //Agrego el proyecto al usuario
+                        $revised_array_t["projects"][] = $_SESSION["project"];
+                    }else{
+                        //Elimino el proyecto del usuario
+                        $i = -1;
+                        if( count( $revised_array_t["projects"] ) ){
+                            foreach ( $revised_array_t["projects"] as $k => $p) {
+                                if( $p == $_SESSION["project"] ){
+                                    $i = $k;
+                                    break;
+                                }
+                            }
+
+                            if( $i>=0){
+                               unset( $revised_array_t["projects"][$i]);
+                            }
+
+                        }
+                    }
+
+                    $revised_array[] = $revised_array_t;
+                }else{
+                    $revised_array[] = $data;
+                }
+
             }
+
+            // Save array back to JSON
+            saveJSON('users.php',$revised_array);
+            // Response
+            echo formatJSEND("success","User '".$this->username."' ". ( ($a)?"assigned.":"Unassinged."  ) );
+
+        }else{
+            // Response
+            echo formatJSEND("error","Empty project set");
         }
-        // Save array back to JSON
-        saveJSON('users.php',$revised_array);
-        // Response
-        echo formatJSEND("success",null);
+            
+        
     }
     
     //////////////////////////////////////////////////////////////////
@@ -169,7 +284,7 @@ class User {
     //////////////////////////////////////////////////////////////////
     
     private function EncryptPassword(){
-        $this->password = sha1(md5($this->password));
+        //$this->password = sha1(md5($this->password));
     }
     
 }

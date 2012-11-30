@@ -36,17 +36,23 @@
             <?php
             // Get tasks JSON data
             $tasks = getJSON('tasks.php');
-            foreach($tasks as $task=>$data){        
+            foreach($tasks as $task=>$data){      
+                if( isset($_SESSION["project"] ) ){
+                    if( $data['project'] == $_SESSION["project"] ){
             ?>
-            <tr>
-                <td><?php echo($data['name']); ?></td>
-                <td><?php echo($data['description'])?></td>
-                <td><?php echo ($data["type"])?></td>
-                <td><?php echo ($data["job"])?></td>
-                <td><?php echo ($data["path"])?></td>
-                <td><a onclick="task.delete('<?php echo($data['id']); ?>','<?php echo($data['name']); ?>');" class="icon">[</a></td>
-            </tr>
+                    <tr>
+                        <td><?php echo($data['name']); ?></td>
+                        <td><?php echo($data['description'])?></td>
+                        <td><?php echo ($data["type"])?></td>
+                        <td><?php echo ($data["job"])?></td>
+                        <td><?php echo ($data["path"])?></td>
+                        <td><a onclick="task.delete('<?php echo($data['id']); ?>','<?php echo($data['name']); ?>');" class="icon">[</a></td>
+                    </tr>
             <?php
+
+
+                    }
+                }
             }
             ?>
             </table>
@@ -70,7 +76,34 @@
             <input type="text" name="description">
             <label>Job</label>
             <input type="hidden" name="path"  value="<?php echo (( isset($_GET["path"]) )?$_GET["path"]:"") ?>"/>
-            <input type="text" name="job">
+            <div class="crontab-editor">
+
+                <div id="minutes-editor" class="editor-section">
+
+                    <a href="javascript:void(0);" class="label" onclick="setminutes(this);" >Minutes</a>
+                    <span id="minutes-set">*</span>
+
+                    <div class="set-section" >
+                        <!--Set minutes -->
+                        <select class="every-n-minutes">
+                            <option value="*">Every minutes</option>
+                            <?php for($i=1; $i<60; $i++): ?>
+                                <option value="*/<?php echo $i; ?>">Every <?php echo $i; ?> minutes</option>
+                            <?php endfor;?>
+                         </select>
+
+                         <select class="selected-minutes" multiple="multiple" >
+                            <?php for($i=1; $i<60; $i++): ?>
+                                <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
+                            <?php endfor;?>
+                         </select>
+
+                    </div>
+                </div>
+
+
+            </div>
+            <input type="text" name="job" readonly="readonly">
             <label>Type</label>
             <select name="type">
                 <option value="php">PHP</option>
@@ -79,7 +112,7 @@
             </select>
             <pre>File path: <?php echo (( isset($_GET["path"]) )?$_GET["path"]:"") ?></pre>
             <button class="btn-left">Create Task</button><button class="btn-right" onclick="task.list();return false;">Cancel</button>
-            <form>
+            </form>
             <?php
             break;
 
@@ -91,6 +124,7 @@
             <label>Confirm Task Deletion</label>
             <pre>Task name: <?php echo($_GET['name']); ?></pre>
             <button class="btn-left">Confirm</button><button class="btn-right" onclick="task.list();return false;">Cancel</button>
+             </form>
             <?php
 
             break;

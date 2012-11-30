@@ -17,6 +17,8 @@ define("DATA",BASE_PATH . "/data");
 define("WORKSPACE",BASE_PATH . "/workspace");
 define("WSURL",$_SERVER["HTTP_HOST"] . $rel . "/workspace");
 
+define("WORKSPACE_USERS",WORKSPACE."/%user");
+
 //////////////////////////////////////////////////////////////////
 // TIMEZONE
 //////////////////////////////////////////////////////////////////
@@ -29,6 +31,8 @@ date_default_timezone_set("America/Bogota");
 
 ini_set("session.cookie_lifetime","0");
 session_start();
+
+$HOSTAUTH = "localhost";
 
 //////////////////////////////////////////////////////////////////
 // COMMON

@@ -36,27 +36,47 @@
             <?php
         
             // Get projects JSON data
+
+            $users = 
+
             $projects = getJSON('projects.php');
             sort($projects);
+            $project_part = explode("/", $_SESSION["project"]);
+
             foreach($projects as $project=>$data){        
-            ?>
-            <tr>
-                <td><a onclick="project.open('<?php echo($data['path']); ?>');" class="icon">s</a></td>
-                <td><?php echo($data['name']); ?></td>
-                <td>/<?php echo($data['path']); ?></td>
-                <?php
-                    if($_SESSION['project'] == $data['path']){
-                    ?>
-                    <td><a onclick="message.error('Active Project Cannot Be Removed');" class="icon">^</a></td>
-                    <?php
-                    }else{
-                    ?>
-                    <td><a onclick="project.delete('<?php echo($data['name']); ?>','<?php echo($data['path']); ?>');" class="icon">[</a></td>
-                    <?php
-                    }
-                    ?>
-            </tr>
+                if( isset($_SESSION["projects"] ) ){
+                    if( in_array($data['path'], $_SESSION["projects"]) ){
+                        ?>
+                            <tr>
+                                <td><a onclick="project.open('<?php echo($data['path']); ?>');" class="icon">s</a></td>
+                                <td><?php echo($data['name']); ?></td>
+                                <td>/<?php echo($data['path']); ?></td>
+
+                                <?php
+                                $project_part = explode("/",$data['path'] );
+
+                                if( $project_part[0] == $_SESSION["user"] ){
+                                    if($_SESSION['project'] == $data['path']){
+                                ?>
+                                    <td><a onclick="message.error('Active Project Cannot Be Removed');" class="icon">^</a></td>
+                                <?php
+
+                                    }else{
+                                ?>
+                                    <td><a onclick="project.delete('<?php echo($data['name']); ?>','<?php echo($data['path']); ?>');" class="icon">[</a></td>
+                                <?php
+
+                                    }
+                                }else{
+                                    echo "<td></td>";
+                                }
+
+                                ?>
+                            </tr>
+            
             <?php
+                    }
+                }
             }
             ?>
             </table>
@@ -70,7 +90,7 @@
         // Create New Project
         //////////////////////////////////////////////////////////////////////
         
-        case create:
+        case 'create':
         
             ?>
             <form>
@@ -85,7 +105,7 @@
         // Delete Project
         //////////////////////////////////////////////////////////////////////
         
-        case delete:
+        case 'delete':
         
         ?>
             <form>

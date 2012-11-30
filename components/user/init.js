@@ -54,10 +54,28 @@ var user = {
     },
     
     //////////////////////////////////////////////////////////////////
+    // Assign User to project
+    //////////////////////////////////////////////////////////////////
+
+    assig: function(username,a){
+        $.get(this.controller+'?action=assig&username='+username+'&a='+a,function(data){
+                delete_response = jsend.parse(data);
+                if(delete_response!='error'){
+                    if(a){
+                        message.success('Account Assigned')
+                    }else{
+                        message.success('Account Removed')
+                    }
+                    user.list();
+                }
+        });
+    },
+
+    //////////////////////////////////////////////////////////////////
     // Create User
     //////////////////////////////////////////////////////////////////
     
-    create_new : function(){
+    /*create_new : function(){
         modal.load(400,user.dialog+'?action=create');
         $('#modal-content form').live('submit',function(e){
             e.preventDefault();
@@ -76,13 +94,13 @@ var user = {
                 });
             }
         });
-    },
+    },*/
     
     //////////////////////////////////////////////////////////////////
     // Delete User
     //////////////////////////////////////////////////////////////////
     
-    delete : function(username){
+    /*delete : function(username){
         modal.load(400,user.dialog+'?action=delete&username='+username);
         $('#modal-content form').live('submit',function(e){
             e.preventDefault();
@@ -95,13 +113,13 @@ var user = {
                 }
             });
         });
-    },
+    },*/
     
     //////////////////////////////////////////////////////////////////
     // Change Password
     //////////////////////////////////////////////////////////////////
     
-    password : function(username){
+    /*password : function(username){
         modal.load(400,user.dialog+'?action=password&username='+username);
         $('#modal-content form').live('submit',function(e){
             e.preventDefault();
@@ -120,7 +138,7 @@ var user = {
                 });
             }
         });
-    },
+    },*/
     
     //////////////////////////////////////////////////////////////////
     // Change Current Project

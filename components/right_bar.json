@@ -40,15 +40,14 @@
         "onclick": null
     },{
         "title": "Tasks",
-        "icon": "t",
+        "icon": "N",
         "onclick": "task.list();"
     },
     {
         "title": "break",
         "icon": null,
         "onclick": null
-    },
-    {
+    },{
         "title": "Users",
         "icon": ",",
         "onclick": "user.list();"

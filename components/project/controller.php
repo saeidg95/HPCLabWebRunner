@@ -34,7 +34,7 @@
             // Load current
             $Project->path = $_SESSION['project'];
             $project_name = $Project->GetName();
-            if(!$no_return){ echo formatJSEND("success",array("name"=>$project_name,"path"=>$_SESSION['project'])); }
+            if(!$no_return){ echo formatJSEND("success",array("name"=>$project_name,"path"=>$_SESSION['project'] )); }
         }
     }
     

@@ -8,6 +8,7 @@
 
     require_once('../../config.php');
     require_once('class.user.php');
+    require_once('../project/class.project.php');
     
     //////////////////////////////////////////////////////////////////
     // Verify Session or Key
@@ -35,11 +36,22 @@
         session_unset(); session_destroy(); session_start();
     }
     
+
+    //////////////////////////////////////////////////////////////////
+    // Assign User
+    //////////////////////////////////////////////////////////////////
+    
+    if($_GET['action']=='assig'){
+        $User->username = $_GET['username'];
+        $a = $_GET["a"];
+        $User->Assig($a);
+    }
+
     //////////////////////////////////////////////////////////////////
     // Create User
     //////////////////////////////////////////////////////////////////
     
-    if($_GET['action']=='create'){
+    /*if($_GET['action']=='create'){
         $User->username = $_GET['username'];
         $User->password = $_GET['password'];
         $User->Create();
@@ -49,7 +61,7 @@
     // Delete User
     //////////////////////////////////////////////////////////////////
     
-    if($_GET['action']=='delete'){
+    /*if($_GET['action']=='delete'){
         $User->username = $_GET['username'];
         $User->Delete();
     }
@@ -62,7 +74,7 @@
         $User->username = $_GET['username'];
         $User->password = $_GET['password'];
         $User->Password();
-    }
+    }*/
     
     //////////////////////////////////////////////////////////////////
     // Change Project

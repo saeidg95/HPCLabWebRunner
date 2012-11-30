@@ -69,7 +69,7 @@ class Filemanager {
             $index = array();
             if(is_dir($this->path) && $handle = opendir($this->path)){
                 while (false !== ($object = readdir($handle))) {
-                    if ($object != "." && $object != ".." && $object != $this->controller) {
+                    if ($object != "." && $object != ".." && $object != ".bin" && $object != $this->controller) {
                         if(is_dir($this->path.'/'.$object)){ $type = "directory"; $size=0; }
                         else{ $type = "file"; $size=filesize($this->path.'/'.$object); }
                         $index[] = array(
